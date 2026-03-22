@@ -1,4 +1,3 @@
-ARG PYTHON_VERSION=3.11.7
 FROM python:${PYTHON_VERSION}-slim
 
 # Prevents Python from writing pyc files.

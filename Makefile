@@ -1,10 +1,9 @@
 date = $(shell date)
 
-.PHONY: migration
-migration:
-	alembic revision --autogenerate -m "Revision ($(date))"
+lint:
+	uv run ruff check --config=pyproject.toml .
 
+format:
+	uv run ruff format --config=pyproject.toml .
 
-.PHONY: migrate
-migrate:
-	alembic upgrade head
+.PHONY: lint format

@@ -1,62 +1,69 @@
-from typing import Annotated  # noqa: I001
+"""Authentication endpoints."""
 
-from fastapi import APIRouter, Depends, Request, Response
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Request, Response, status
+from fastapi.responses import RedirectResponse
 
-from ..exceptions import InvalidTokenException
-from ..dependencies import UnitOfWorkContext
-from ...core import settings as config
-from ...infrastructure.db.services import service
-from ..schemas import Token
+from src.api.dependencies import OICServiceDependency
+from src.api.schemas import Token as TokenResponse
 
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token)
-async def access_token(
-    response: Response,
-    uow: UnitOfWorkContext,
-    *,
-    credentials: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
-    token = await service.auth.authenticate_user(
-        uow, email=credentials.username, password=credentials.password
+@router.post(
+    "/refresh", status_code=status.HTTP_200_OK, response_model=TokenResponse
+)
+async def refresh(request: Request, service: OICServiceDependency):
+    """Refresh access token by refresh token."""
+    refresh_token = request.cookies.get("refresh_token")
+    ip_address = request.client.host if request.client else "unknown"
+
+    return await service.refresh(
+        refresh_token=refresh_token, ip_address=ip_address
     )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    request: Request, response: Response, service: OICServiceDependency
+) -> None:
+    """Logout user by refresh token."""
+
+    refresh_token = request.cookies.get("refresh_token")
+
+    response.delete_cookie("refresh_token", httponly=True)
+
+    await service.logout(refresh_token=refresh_token)
+
+
+@router.post("/discord", status_code=307)
+async def discord(service: OICServiceDependency) -> RedirectResponse:
+    """Authenticate user by Discord."""
+
+    return RedirectResponse(url=service.oauth_provider.get_authorization_url())
+
+
+@router.get(
+    "/discord/callback",
+    status_code=status.HTTP_200_OK,
+    response_model=TokenResponse,
+)
+async def discord_callback(
+    code: str,
+    service: OICServiceDependency,
+    request: Request,
+    response: Response,
+):
+    """Handle Discord auth callback."""
+
+    ip_address = request.client.host if request.client else "unknown"
+
+    token = await service.login(code=code, ip_address=ip_address)
 
     response.set_cookie(
         "refresh_token",
         token.refresh_token,
-        max_age=config.auth.REFRESH_TOKEN_EXPIRE_DAYS * 60 * 60 * 24,
         httponly=True,
+        max_age=service.config.jwt.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
     )
 
-    return token
-
-
-@router.post("/refresh", response_model=Token)
-async def refresh_access_token(
-    request: Request,
-    uow: UnitOfWorkContext,
-) -> Token:
-    refresh_token = request.cookies.get("refresh_token")
-
-    if not refresh_token:
-        raise InvalidTokenException
-
-    return await service.auth.refresh_token(uow, refresh_token=refresh_token)
-
-
-@router.post("/logout")
-async def logout(
-    request: Request,
-    response: Response,
-    uow: UnitOfWorkContext,
-) -> None:
-    refresh_token = request.cookies.get("refresh_token")
-
-    if not refresh_token:
-        raise InvalidTokenException
-
-    response.delete_cookie("refresh_token", httponly=True)
-
-    await service.auth.logout(uow, refresh_token=refresh_token)
+    return TokenResponse(access_token=token.access_token)

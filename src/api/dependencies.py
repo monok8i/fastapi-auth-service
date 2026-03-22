@@ -1,45 +1,68 @@
-from typing import Annotated  # noqa: I001
+"""API dependencies."""
 
-import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from typing import TYPE_CHECKING, Annotated
 
-from core import settings as config
-from infrastructure.db.uow import UnitOfWork
-from infrastructure.db.models import User
-from infrastructure.db.services import service
-from schemas.token import TokenPayload
+from fastapi import Depends, Request
 
-from .exceptions import InvalidTokenException
+from src.core.config._global import Config
+from src.core.security.jwt import JWTTokenService
+from src.infrastructure.discord.oauth_provider import DiscordOAuthProvider
+from src.infrastructure.redis.storage_repository import RedisStorageRepository
+from src.services.oic import OICService
 
-
-# unit of work context
-UnitOfWorkContext = Annotated[UnitOfWork, Depends(UnitOfWork)]
-
-# reusable URL for receiving auth token from user
-oauth2 = OAuth2PasswordBearer(tokenUrl=f"{config.common.API_V1}/auth/login")
-
-# put auth token in variable using Annotated special form
-TokenDep = Annotated[str, Depends(oauth2)]
+if TYPE_CHECKING:
+    from redis.asyncio import Redis
 
 
-async def get_current_user(
-    uow: UnitOfWorkContext, _token: TokenDep
-) -> User | HTTPException:
-    try:
-        payload = service.auth.decode_jwt_token(token=_token)
-        token_data: TokenPayload = TokenPayload(**payload)  # type: ignore
-    except jwt.exceptions.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
-    user = await service.user.get_by_id(uow, user_id=token_data.sub)  # type: ignore
-
-    if not user:
-        raise InvalidTokenException
-
-    return user
+def get_redis_client(request: Request) -> "Redis":
+    """Get the Redis client from the request state."""
+    return request.app.state.redis_client
 
 
-# put result of function in variable using `Annotated` special form
-CurrentUser = Annotated[User, Depends(get_current_user)]
+def get_redis_storage_repository(
+    redis_client: Annotated["Redis", Depends(get_redis_client)],
+) -> RedisStorageRepository:
+    """Get the Redis storage repository."""
+
+    return RedisStorageRepository(redis_client)
+
+
+def get_discord_oauth_provider(request: Request) -> DiscordOAuthProvider:
+    """Get the OAuth provider."""
+
+    return DiscordOAuthProvider(request.app.state.config)
+
+
+def jwt_token_service(request: Request):
+    """Get the JWT token service."""
+
+    return JWTTokenService(request.app.state.config.jwt)
+
+
+def get_config(request: Request) -> Config:
+    """Get the global configuration."""
+
+    return request.app.state.config
+
+
+def get_discord_oic_service(
+    redis_storage_repository: Annotated[
+        RedisStorageRepository, Depends(get_redis_storage_repository)
+    ],
+    discord_oauth_provider: Annotated[
+        DiscordOAuthProvider, Depends(get_discord_oauth_provider)
+    ],
+    jwt_token_service: Annotated[JWTTokenService, Depends(jwt_token_service)],
+    config: Annotated[Config, Depends(get_config)],
+) -> OICService:
+    """Get the OIC service."""
+
+    return OICService(
+        oauth_provider=discord_oauth_provider,
+        token_service=jwt_token_service,
+        storage=redis_storage_repository,
+        config=config,
+    )
+
+
+OICServiceDependency = Annotated[OICService, Depends(get_discord_oic_service)]
