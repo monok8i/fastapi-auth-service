@@ -5,11 +5,13 @@ import contextlib
 import signal
 
 from src.setup import create_api_server
+from src.utils.logging.setup import setup_logging, stop_logging
 
 
 async def main() -> None:
     """Main function to start the Nightcore Dashboard Backend."""
     # Set up logging
+    logger = setup_logging()
     # Create API Server
     server = create_api_server()
     server_task = asyncio.create_task(server.serve())
@@ -17,6 +19,7 @@ async def main() -> None:
     loop = asyncio.get_running_loop()
 
     def shutdown() -> None:
+        logger.info("Shutdown signal received. Stopping the server...")
         server.should_exit = True
 
     # Register signal handlers
@@ -26,12 +29,13 @@ async def main() -> None:
     try:
         await server_task
     except asyncio.CancelledError:
-        pass  # add logging
-    except Exception:
-        pass  # add logging
+        logger.info("Server task was cancelled.")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
     finally:
         # Cleanup resources
-        pass  # add logging
+        logger.info("Nighcore Auth Service has been stopped.")
+        stop_logging()
 
 
 if __name__ == "__main__":
