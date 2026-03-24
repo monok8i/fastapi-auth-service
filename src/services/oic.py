@@ -36,13 +36,11 @@ class OICService(IOICService):
         user_info = await self.oauth_provider.get_user_info(
             token_data=token_data
         )
-        jwt_access_token = self.token_service.create_access_token(
-            user_info.discord_id
-        )
+        jwt_access_token = self.token_service.create_access_token(user_info.id)
         jwt_refresh_token = self.token_service.create_refresh_token()
 
         await self.storage.create(
-            user_info.discord_id,
+            user_info.id,
             jwt_refresh_token,
             ip_address,
             ttl=self.config.jwt.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
