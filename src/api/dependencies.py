@@ -30,7 +30,7 @@ def get_redis_storage_repository(
 def get_discord_oauth_provider(request: Request) -> DiscordOAuthProvider:
     """Get the OAuth provider."""
 
-    return DiscordOAuthProvider(request.app.state.config)
+    return DiscordOAuthProvider(request.app.state.config.discord)
 
 
 def jwt_token_service(request: Request):
