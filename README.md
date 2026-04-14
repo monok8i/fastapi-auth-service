@@ -1,5 +1,4 @@
-
-
+# Basic authentication service (discord integration)
 
 
 ## Generate public and private keys
@@ -22,3 +21,9 @@ base64 -w 0 public.pem
 JWT_PUBLIC_KEY=...
 JWT_PRIVATE_KEY=...
 ```
+
+---
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
