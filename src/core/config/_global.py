@@ -5,6 +5,7 @@ from functools import cached_property
 from src.api.config import Config as APIConfig
 from src.core.security.config import Config as JWTConfig
 from src.infrastructure.discord.config import Config as DiscordConfig
+from src.infrastructure.github.config import Config as GithubConfig
 from src.infrastructure.google.config import Config as GoogleConfig
 from src.infrastructure.redis.config import Config as RedisConfig
 
@@ -31,6 +32,11 @@ class Config:
     def google(self) -> GoogleConfig:
         """Return the Google configuration settings."""
         return GoogleConfig()  # type: ignore
+
+    @cached_property
+    def github(self) -> GithubConfig:
+        """Return the Github configuration settings."""
+        return GithubConfig()  # type: ignore
 
     @cached_property
     def redis(self) -> RedisConfig:

@@ -8,7 +8,6 @@ import aiohttp
 from src.domain.interfaces.oauth_provider import IOAuthProvider
 
 from .config import Config as GoogleConfig
-from .entities import GoogleJWTTokenData, GoogleTokenData, GoogleUser
 from .exceptions import (
     AuthorizationCodeNotProvidedError,
     CSRFTokenNotProvidedError,
@@ -17,6 +16,7 @@ from .exceptions import (
     TokenExchangeError,
     UserInfoRetrievalError,
 )
+from .models import GoogleJWTTokenData, GoogleTokenData, GoogleUser
 
 
 class GoogleOAuthProvider(IOAuthProvider):
@@ -48,8 +48,12 @@ class GoogleOAuthProvider(IOAuthProvider):
             "&scope=openid email"
         )
 
-    async def exchange_code(self, code: str | None) -> GoogleTokenData:
+    async def exchange_code(
+        self, code: str | None, code_verifier: str | None = None
+    ) -> GoogleTokenData:
         """Exchange the authorization code for an access token."""
+
+        _ = code_verifier
 
         if not code:
             raise AuthorizationCodeNotProvidedError(

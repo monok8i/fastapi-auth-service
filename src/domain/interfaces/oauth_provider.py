@@ -12,7 +12,9 @@ class IOAuthProvider(Protocol):
         """Get the URL to redirect the user to for authorization."""
         ...
 
-    async def exchange_code(self, code: str | None) -> Any:
+    async def exchange_code(
+        self, code: str | None, code_verifier: str | None = None
+    ) -> Any:
         """Exchange the authorization code for an access token."""
         ...
 

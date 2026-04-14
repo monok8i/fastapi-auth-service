@@ -3,7 +3,6 @@
 import aiohttp
 
 from src.domain.interfaces.oauth_provider import IOAuthProvider
-from src.infrastructure.discord.entities import DiscordTokenData, DiscordUser
 
 from .config import Config as DiscordConfig
 from .exceptions import (
@@ -12,6 +11,7 @@ from .exceptions import (
     TokenExchangeError,
     UserInfoRetrievalError,
 )
+from .models import DiscordTokenData, DiscordUser
 
 
 class DiscordOAuthProvider(IOAuthProvider):
@@ -35,8 +35,12 @@ class DiscordOAuthProvider(IOAuthProvider):
             f"&response_type=code&scope=identify"
         )
 
-    async def exchange_code(self, code: str | None) -> DiscordTokenData:
+    async def exchange_code(
+        self, code: str | None, code_verifier: str | None = None
+    ) -> DiscordTokenData:
         """Exchange the authorization code for an access token."""
+
+        _ = code_verifier
 
         if not code:
             raise AuthorizationCodeNotProvidedError(

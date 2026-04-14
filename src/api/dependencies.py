@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from src.core.config._global import Config
 from src.core.security.jwt import JWTTokenService
 from src.infrastructure.discord.oauth_provider import DiscordOAuthProvider
+from src.infrastructure.github.oauth_provider import GithubOAuthProvider
 from src.infrastructure.google.oauth_provider import GoogleOAuthProvider
 from src.infrastructure.redis.csrf_storage_repository import (
     CSRFStorageRepository,
@@ -64,6 +65,12 @@ def get_google_oauth_provider(request: Request) -> GoogleOAuthProvider:
     return GoogleOAuthProvider(request.app.state.config.google)
 
 
+def get_github_oauth_provider(request: Request) -> GithubOAuthProvider:
+    """Get the OAuth provider."""
+
+    return GithubOAuthProvider(request.app.state.config.github)
+
+
 def get_discord_oic_service(
     redis_storage_repository: Annotated[
         RedisStorageRepository, Depends(get_redis_storage_repository)
@@ -104,6 +111,26 @@ def get_google_oic_service(
     )
 
 
+def get_github_oic_service(
+    redis_storage_repository: Annotated[
+        RedisStorageRepository, Depends(get_redis_storage_repository)
+    ],
+    github_oauth_provider: Annotated[
+        GithubOAuthProvider, Depends(get_github_oauth_provider)
+    ],
+    jwt_token_service: Annotated[JWTTokenService, Depends(jwt_token_service)],
+    config: Annotated[Config, Depends(get_config)],
+) -> OICService:
+    """Get the OIC service."""
+
+    return OICService(
+        oauth_provider=github_oauth_provider,
+        token_service=jwt_token_service,
+        storage=redis_storage_repository,
+        config=config,
+    )
+
+
 def get_session_service(
     redis_storage_repository: Annotated[
         RedisStorageRepository, Depends(get_redis_storage_repository)
@@ -130,6 +157,10 @@ OICDiscordServiceDependency = Annotated[
 
 OICGoogleServiceDependency = Annotated[
     OICService, Depends(get_google_oic_service)
+]
+
+OICGithubServiceDependency = Annotated[
+    OICService, Depends(get_github_oic_service)
 ]
 
 SessionServiceDependency = Annotated[

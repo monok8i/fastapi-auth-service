@@ -25,10 +25,17 @@ class OICService(IOICService):
         self.storage = storage
         self.config = config
 
-    async def login(self, code: str | None, ip_address: str) -> Token:
+    async def login(
+        self,
+        code: str | None,
+        ip_address: str,
+        code_verifier: str | None = None,
+    ) -> Token:
         """Start the OIC flow."""
 
-        token_data = await self.oauth_provider.exchange_code(code)
+        token_data = await self.oauth_provider.exchange_code(
+            code, code_verifier=code_verifier
+        )
         user_info = await self.oauth_provider.get_user_info(
             token_data=token_data
         )

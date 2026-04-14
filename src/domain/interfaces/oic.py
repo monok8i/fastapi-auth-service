@@ -15,6 +15,11 @@ class IOICService(Protocol):
     token_service: ITokenService
     storage: IStorageRepository
 
-    async def login(self, code: str, ip_address: str) -> Token:
+    async def login(
+        self,
+        code: str,
+        ip_address: str,
+        code_verifier: str | None = None,
+    ) -> Token:
         """Start the OIC flow by redirecting the user to the OAuth provider."""
         ...
