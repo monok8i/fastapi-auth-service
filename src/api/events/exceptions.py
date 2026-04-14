@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 
 from src.core.security.exceptions import TokenError
 from src.domain.exceptions.base import AuthError
-from src.domain.exceptions.session import SessionNotFoundError
 from src.domain.exceptions.token import (
     RefreshTokenNotProvidedError,
     TokenRevokedError,
@@ -30,9 +29,7 @@ async def auth_exception_handler(_: Request, exc: AuthError) -> JSONResponse:
 
 async def business_exception_handler(
     _: Request,
-    exc: SessionNotFoundError
-    | RefreshTokenNotProvidedError
-    | TokenRevokedError,
+    exc: RefreshTokenNotProvidedError | TokenRevokedError,
 ) -> JSONResponse:
     """Handle business-related errors."""
 
@@ -105,7 +102,6 @@ async def unexpected_exception_handler(
 
 EXCEPTION_HANDLERS = {
     AuthError: auth_exception_handler,
-    SessionNotFoundError: business_exception_handler,
     RefreshTokenNotProvidedError: business_exception_handler,
     TokenRevokedError: business_exception_handler,
     AuthorizationCodeNotProvidedError: discord_exception_handler,
