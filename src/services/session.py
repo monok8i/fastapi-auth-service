@@ -1,0 +1,70 @@
+"""Session service implementation."""
+
+from typing import TYPE_CHECKING
+
+from src.domain.entities.token import Token
+from src.domain.exceptions.token import (
+    RefreshTokenNotProvidedError,
+    TokenRevokedError,
+)
+from src.domain.interfaces.session import ISessionService
+
+if TYPE_CHECKING:
+    from src.core.config._global import Config
+    from src.core.security.jwt import JWTTokenService
+    from src.domain.interfaces.storage_repository import IStorageRepository
+
+
+class SessionService(ISessionService):
+    def __init__(
+        self,
+        storage: "IStorageRepository",
+        token_service: "JWTTokenService",
+        config: "Config",
+    ):
+        self.storage = storage
+        self.token_service = token_service
+        self.config = config
+
+    async def refresh(
+        self, refresh_token: str | None, ip_address: str
+    ) -> Token:
+        """Refresh the user's access token using the refresh token."""
+
+        if not refresh_token:
+            raise RefreshTokenNotProvidedError()
+
+        session = await self.storage.get(refresh_token)
+
+        if session is None:
+            raise TokenRevokedError()
+
+        if session.ip_address != ip_address:
+            await self.storage.delete(refresh_token)
+            raise TokenRevokedError()
+
+        await self.storage.delete(refresh_token)
+
+        jwt_access_token = self.token_service.create_access_token(
+            session.user_id
+        )
+        jwt_refresh_token = self.token_service.create_refresh_token()
+
+        await self.storage.create(
+            session.user_id,
+            jwt_refresh_token,
+            ip_address,
+            self.config.jwt.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+        )
+
+        return Token(
+            access_token=jwt_access_token, refresh_token=jwt_refresh_token
+        )
+
+    async def logout(self, refresh_token: str | None) -> None:
+        """Logout the user by deleting their refresh token."""
+
+        if not refresh_token:
+            return
+
+        await self.storage.delete(refresh_token)

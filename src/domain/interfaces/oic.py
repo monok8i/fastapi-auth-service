@@ -18,13 +18,3 @@ class IOICService(Protocol):
     async def login(self, code: str, ip_address: str) -> Token:
         """Start the OIC flow by redirecting the user to the OAuth provider."""
         ...
-
-    async def refresh(
-        self, refresh_token: str | None, ip_address: str
-    ) -> Token:
-        """Refresh the user's access token using the refresh token."""
-        ...
-
-    async def logout(self, refresh_token: str | None) -> None:
-        """Logout the user by deleting their data from the storage."""
-        ...
