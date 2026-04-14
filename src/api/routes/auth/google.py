@@ -54,9 +54,16 @@ async def google_callback(
             content={"detail": "Invalid or expired CSRF token"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
     if state != csrf_session.token:
         return JSONResponse(
             content={"detail": "CSRF token mismatch"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if csrf_session.provider != "google":
+        return JSONResponse(
+            content={"detail": "Invalid OAuth provider for CSRF token"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 

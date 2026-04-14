@@ -1,7 +1,8 @@
-"""Discord OAuth provider implementation."""
+"""Google OAuth provider implementation."""
 
 import base64
 import json
+from urllib.parse import urlencode
 
 import aiohttp
 
@@ -38,15 +39,18 @@ class GoogleOAuthProvider(IOAuthProvider):
                 "Nonce not provided in the authorization URL generation"
             )
 
-        return (
-            f"https://accounts.google.com/o/oauth2/v2/auth"
-            f"?client_id={self.config.GOOGLE_AUTH_CLIENT_ID}"
-            f"&redirect_uri={self.config.GOOGLE_AUTH_REDIRECT_URI}"
-            f"&response_type=code"
-            f"&state={csrf_token}"
-            f"&nonce={nonce}"
-            "&scope=openid email"
+        query = urlencode(
+            {
+                "client_id": self.config.GOOGLE_AUTH_CLIENT_ID,
+                "redirect_uri": self.config.GOOGLE_AUTH_REDIRECT_URI,
+                "response_type": "code",
+                "state": csrf_token,
+                "nonce": nonce,
+                "scope": "openid email",
+            }
         )
+
+        return f"https://accounts.google.com/o/oauth2/v2/auth?{query}"
 
     async def exchange_code(
         self, code: str | None, code_verifier: str | None = None

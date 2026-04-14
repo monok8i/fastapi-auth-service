@@ -1,5 +1,7 @@
 """Discord OAuth provider implementation."""
 
+from urllib.parse import urlencode
+
 import aiohttp
 
 from src.domain.interfaces.oauth_provider import IOAuthProvider
@@ -28,12 +30,16 @@ class DiscordOAuthProvider(IOAuthProvider):
         # Discord OAuth flow does not use state/nonce in this implementation.
         _ = csrf_token, nonce
 
-        return (
-            f"https://discord.com/oauth2/authorize"
-            f"?client_id={self.config.DISCORD_AUTH_CLIENT_ID}"
-            f"&redirect_uri={self.config.DISCORD_AUTH_REDIRECT_URI}"
-            f"&response_type=code&scope=identify"
+        query = urlencode(
+            {
+                "client_id": self.config.DISCORD_AUTH_CLIENT_ID,
+                "redirect_uri": self.config.DISCORD_AUTH_REDIRECT_URI,
+                "response_type": "code",
+                "scope": "identify",
+            }
         )
+
+        return f"https://discord.com/oauth2/authorize?{query}"
 
     async def exchange_code(
         self, code: str | None, code_verifier: str | None = None
