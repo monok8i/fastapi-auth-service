@@ -4,17 +4,17 @@ from urllib.parse import urlencode
 
 import aiohttp
 
-from src.domain.interfaces.oauth_provider import IOAuthProvider
-
-from .config import Config as GithubConfig
-from .exceptions import (
+from src.domain.exceptions.auth import (
     AuthorizationCodeNotProvidedError,
     CSRFTokenNotProvidedError,
-    GithubAPIError,
+    ExternalAPIError,
     NonceNotProvidedError,
     TokenExchangeError,
     UserInfoRetrievalError,
 )
+from src.domain.interfaces.oauth_provider import IOAuthProvider
+
+from .config import Config as GithubConfig
 from .models import GithubTokenData, GithubUser
 
 
@@ -102,7 +102,7 @@ class GithubOAuthProvider(IOAuthProvider):
                     ) from e
 
         except aiohttp.ClientError as e:
-            raise GithubAPIError(
+            raise ExternalAPIError(
                 "Failed to communicate with Github API"
             ) from e
 
@@ -139,6 +139,6 @@ class GithubOAuthProvider(IOAuthProvider):
                 return GithubUser(id=str(user_id))
 
         except aiohttp.ClientError as e:
-            raise GithubAPIError(
+            raise ExternalAPIError(
                 "Failed to communicate with Github API"
             ) from e

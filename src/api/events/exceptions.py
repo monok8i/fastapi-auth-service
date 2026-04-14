@@ -4,11 +4,11 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 from src.core.security.exceptions import TokenError
-from src.domain.exceptions.base import AuthError
-from src.domain.exceptions.token import (
+from src.domain.exceptions.auth import (
     RefreshTokenNotProvidedError,
     TokenRevokedError,
 )
+from src.domain.exceptions.base import AuthError
 from src.infrastructure.discord.exceptions import (
     AuthorizationCodeNotProvidedError,
     DiscordAPIError,

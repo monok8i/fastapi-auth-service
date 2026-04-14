@@ -6,17 +6,17 @@ from urllib.parse import urlencode
 
 import aiohttp
 
-from src.domain.interfaces.oauth_provider import IOAuthProvider
-
-from .config import Config as GoogleConfig
-from .exceptions import (
+from src.domain.exceptions.auth import (
     AuthorizationCodeNotProvidedError,
     CSRFTokenNotProvidedError,
-    GoogleAPIError,
+    ExternalAPIError,
     NonceNotProvidedError,
     TokenExchangeError,
     UserInfoRetrievalError,
 )
+from src.domain.interfaces.oauth_provider import IOAuthProvider
+
+from .config import Config as GoogleConfig
 from .models import GoogleJWTTokenData, GoogleTokenData, GoogleUser
 
 
@@ -96,7 +96,7 @@ class GoogleOAuthProvider(IOAuthProvider):
                     ) from e
 
         except aiohttp.ClientError as e:
-            raise GoogleAPIError(
+            raise ExternalAPIError(
                 "Failed to communicate with Google API"
             ) from e
 

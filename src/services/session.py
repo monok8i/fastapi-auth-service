@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 from src.domain.entities.token import Token
-from src.domain.exceptions.token import (
+from src.domain.exceptions.auth import (
     RefreshTokenNotProvidedError,
     TokenRevokedError,
 )

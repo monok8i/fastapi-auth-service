@@ -4,15 +4,15 @@ from urllib.parse import urlencode
 
 import aiohttp
 
-from src.domain.interfaces.oauth_provider import IOAuthProvider
-
-from .config import Config as DiscordConfig
-from .exceptions import (
+from src.domain.exceptions.auth import (
     AuthorizationCodeNotProvidedError,
-    DiscordAPIError,
+    ExternalAPIError,
     TokenExchangeError,
     UserInfoRetrievalError,
 )
+from src.domain.interfaces.oauth_provider import IOAuthProvider
+
+from .config import Config as DiscordConfig
 from .models import DiscordTokenData, DiscordUser
 
 
@@ -85,7 +85,7 @@ class DiscordOAuthProvider(IOAuthProvider):
                     ) from e
 
         except aiohttp.ClientError as e:
-            raise DiscordAPIError(
+            raise ExternalAPIError(
                 "Failed to communicate with Discord API"
             ) from e
 
@@ -117,6 +117,6 @@ class DiscordOAuthProvider(IOAuthProvider):
                     ) from e
 
         except aiohttp.ClientError as e:
-            raise DiscordAPIError(
+            raise ExternalAPIError(
                 "Failed to communicate with Discord API"
             ) from e
