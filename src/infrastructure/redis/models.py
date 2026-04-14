@@ -11,3 +11,12 @@ class Session:
     ip_address: str
     refresh_token: str
     expires_in: int
+
+
+@dataclass
+class CSRFToken:
+    """CSRF token model for storing CSRF tokens in Redis."""
+
+    token: str
+    nonce: str
+    provider: str
