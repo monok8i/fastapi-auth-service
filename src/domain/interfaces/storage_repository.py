@@ -17,7 +17,3 @@ class IStorageRepository(Protocol):
     async def delete(self, refresh_token: str) -> None:
         """Delete a user from the storage by their ID."""
         ...
-
-    # async def update(self, user_id: str, user_data: dict[str, str]) -> None:
-    #     """Update a user in the storage by their ID."""
-    #     ...
