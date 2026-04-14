@@ -1,4 +1,4 @@
-# Basic authentication service (discord integration)
+# Authentication service made in FastAPI with Discord/Google OIC integration
 
 
 ## Generate public and private keys
