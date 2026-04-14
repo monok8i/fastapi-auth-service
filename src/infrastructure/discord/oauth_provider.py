@@ -18,8 +18,15 @@ class DiscordOAuthProvider(IOAuthProvider):
     def __init__(self, config: DiscordConfig):
         self.config = config
 
-    def get_authorization_url(self):
+    def get_authorization_url(
+        self,
+        csrf_token: str | None = None,
+        nonce: str | None = None,
+    ) -> str:
         """Get the URL to redirect the user to for authorization."""
+
+        # Discord OAuth flow does not use state/nonce in this implementation.
+        _ = csrf_token, nonce
 
         return (
             f"https://discord.com/oauth2/authorize"

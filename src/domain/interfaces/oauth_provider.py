@@ -4,7 +4,11 @@ from typing import Any, Protocol
 
 
 class IOAuthProvider(Protocol):
-    def get_authorization_url(self) -> str:
+    def get_authorization_url(
+        self,
+        csrf_token: str | None = None,
+        nonce: str | None = None,
+    ) -> str:
         """Get the URL to redirect the user to for authorization."""
         ...
 
