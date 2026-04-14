@@ -1,6 +1,5 @@
 """JWT token service implementation."""
 
-import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -11,6 +10,7 @@ from src.domain.interfaces.token import ITokenService
 
 from .config import Config as JWTConfig
 from .exceptions import InvalidTokenError, TokenExpiredError
+from .secrets import generate_secret
 
 
 class JWTTokenService(ITokenService):
@@ -28,7 +28,7 @@ class JWTTokenService(ITokenService):
     def create_refresh_token(self) -> str:
         """Create refresh token for user."""
 
-        return str(uuid.uuid5(uuid.NAMESPACE_DNS, secrets.token_urlsafe(64)))
+        return str(uuid.uuid5(uuid.NAMESPACE_DNS, generate_secret(64)))
 
     def sign(self, payload: dict[str, str | int]) -> str:
         """Create and sign JWT token."""
