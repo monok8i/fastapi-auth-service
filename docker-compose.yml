@@ -1,14 +1,14 @@
-name: nightcore-auth-service
+name: auth-service
 
 networks:
-  nightcore-auth:
-    name: nightcore-auth
+  auth-service:
+    name: auth-service
     driver: bridge
 
 services:
-  nightcore-auth-service:
-    image: nightcore-auth-service:latest
-    container_name: nightcore-auth-service
+  auth-service:
+    image: auth-service:latest
+    container_name: auth-service
     build:
       context: .
       dockerfile: Dockerfile
@@ -21,17 +21,17 @@ services:
       - ./main.py:/app/main.py
 
     depends_on:
-      - nightcore-auth-redis
+      - auth-service-redis
 
     networks:
-      - nightcore-auth
+      - auth-service
 
     ports:
       - "${API_PORT}:${API_PORT}"
 
-  nightcore-auth-redis:
+  auth-service-redis:
     image: redis:7-alpine
-    container_name: nightcore-auth-redis
+    container_name: auth-service-redis
     restart: no
     env_file:
       - .env
@@ -46,11 +46,11 @@ services:
       retries: 5
 
     networks:
-      - nightcore-auth
+      - auth-service
 
-  nightcore-auth-redisinsight:
+  auth-service-redisinsight:
     image: redis/redisinsight:latest
-    container_name: nightcore-auth-redisinsight
+    container_name: auth-service-redisinsight
     restart: no
     env_file:
       - .env
@@ -62,8 +62,8 @@ services:
       - ./.redisinsight:/data
 
     depends_on:
-      nightcore-auth-redis:
+      auth-service-redis:
         condition: service_healthy
 
     networks:
-      - nightcore-auth
+      - auth-service
