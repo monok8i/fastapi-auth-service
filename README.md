@@ -1,5 +1,9 @@
-# Authentication service made in FastAPI with Discord/Google OIC integration
+# Authentication service
 
+## Integrations
+- Github
+- Google
+- Discord
 
 ## Generate public and private keys
 ```bash
